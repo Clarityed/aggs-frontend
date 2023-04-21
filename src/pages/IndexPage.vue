@@ -14,7 +14,7 @@
       <PostList :post-list="postList" />
     </a-tab-pane>
     <a-tab-pane key="picture" tab="图片" force-render>
-      <PictureList />
+      <PictureList :picture-list="pictureList" />
     </a-tab-pane>
     <a-tab-pane key="user" tab="用户">
       <UserList :user-list="userList" />
@@ -53,11 +53,36 @@ watchEffect(() => {
   } as never;
 });
 
+const postList = ref([]);
+const userList = ref([]);
+const pictureList = ref([]);
+
+/**
+ * 加载数据
+ * @param params
+ */
+const loadDate = (params: any) => {
+  /* 请求后端接口 */
+  const query = {
+    ...params,
+    searchText: params.text,
+  };
+  myAxios.post("search/aggs", query).then((res: any) => {
+    postList.value = res.postVOList;
+    userList.value = res.userVOList;
+    pictureList.value = res.pictureList;
+  });
+};
+
+/* 加载页面时首先就执行一次 */
+loadDate(initSearchParams);
+
 const onSearch = (value: string) => {
-  alert(value);
+  console.log(value);
   router.push({
     query: searchParams.value,
   });
+  loadDate(searchParams.value);
 };
 
 const onTabSearch = (key: string) => {
@@ -66,15 +91,4 @@ const onTabSearch = (key: string) => {
     query: searchParams.value,
   });
 };
-
-const postList = ref([]);
-const userList = ref([]);
-
-/* 请求后端接口 */
-myAxios.post("post/list/page/vo", {}).then((res: any) => {
-  postList.value = res.records;
-});
-myAxios.post("user/list/page/vo", {}).then((res: any) => {
-  userList.value = res.records;
-});
 </script>
